@@ -3,12 +3,12 @@
     <Nav />
     <h3>商品列表</h3>
     <div class="goods-list">
-      <goods-item v-for="(v, index) in goodsList" :key="index" :detail="v" />
+      <goods-item v-for="(v, index) in goodsList" :key="index" :good="v" />
     </div>
   </div>
 </template>
 <script>
-import { getGoodsList } from "./apis/goods";
+import { GoodsService } from "./services";
 import Nav from "./components/Nav";
 import GoodsItem from "./components/GoodsItem";
 export default {
@@ -19,8 +19,8 @@ export default {
   },
   components: { GoodsItem, Nav },
   mounted() {
-    getGoodsList().then((data) => {
-      this.goodsList = data;
+    GoodsService.getGoodsList().then((list) => {
+      this.goodsList = list;
     });
   },
 };

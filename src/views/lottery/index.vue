@@ -2,18 +2,13 @@
   <div class="lottery-page">
     <div class="lottery-detail">
       <h3>抽奖详情</h3>
-      <div class="name">name: {{ lotteryDetail.name }}</div>
-      <div>
-        抽奖类型：{{
-          lotteryDetail.lotteryType &&
-          lotteryTypeMap[lotteryDetail.lotteryType].title
-        }}
-      </div>
-      <div>time: {{ timeRange }}</div>
+      <div class="name">name: {{ lottery.name }}</div>
+      <div>抽奖类型：{{ lottery.getLotteryType() }}</div>
+      <div>time: {{ lottery.getLotteryTimeScope() }}</div>
     </div>
     <div class="lottery-prize">
       <h3>奖品列表</h3>
-      <prize-item :key="index" v-for="(v, index) in prizeList" :data="v" />
+      <prize-item :key="index" v-for="(v, index) in prizeList" :prize="v" />
       <button @click="handlePlayLottery">点击抽奖</button>
       <div class="save-address-modal" v-if="isShowSaveAddressModal">
         <div>收货地址填写</div>
@@ -28,8 +23,8 @@
     </div>
     <div class="user-info">
       <span
-        ><span v-if="userInfo.userType === 2">尊敬的签约客户</span
-        >{{ userInfo.userName }}</span
+        ><span v-if="user.isSignUserType()">尊敬的签约客户</span
+        >{{ user.name }}</span
       >
       <div>您还剩余: {{ pointCount }} 分</div>
     </div>
@@ -37,17 +32,11 @@
 </template>
 <script>
 import dayjs from "dayjs";
-import {
-  getLotteryDetail,
-  getPrizeList,
-  lotteryPlay,
-  saveAdress,
-} from "./apis/lottery";
-import { getUserInfo } from "./apis/user";
-import { getUserPointCount } from "./apis/interest";
-
-import { lotteryTypeMap } from "./constants";
+import { UserService, InterestService, LotteryService } from "./services";
 import PrizeItem from "./components/prizeItem";
+import User from "../../common/domain/user/entities/user";
+import Lottery from "../../common/domain/lottery/entities/lottery";
+import Prize from "../../common/domain/lottery/entities/prize";
 
 const LotteryId = "8274";
 
@@ -58,14 +47,14 @@ export default {
   components: { PrizeItem },
   data() {
     return {
-      lotteryDetail: {},
-      prizeList: [],
-      userInfo: {},
+      user: new User(),
       pointCount: null,
-      prizeRecord: {},
+      lottery: new Lottery(),
+      prizeList: [],
+      recordId: "",
+      gainPrize: new Prize(),
       isShowSaveAddressModal: false,
       addressInfo: {},
-      lotteryTypeMap,
     };
   },
   mounted() {
@@ -85,34 +74,31 @@ export default {
   },
   methods: {
     initLottery() {
-      getLotteryDetail(LotteryId).then((data) => {
-        this.lotteryDetail = data;
+      LotteryService.getLotteryDetail(LotteryId).then((lottery) => {
+        this.lottery = lottery;
       });
 
-      getPrizeList(LotteryId).then((data) => {
-        this.prizeList = data;
+      LotteryService.getPrizeList(LotteryId).then((list) => {
+        this.prizeList = list;
       });
     },
     getUserInfo() {
-      getUserInfo().then((data) => {
-        this.userInfo = data;
+      UserService.getUserDetail().then((user) => {
+        this.user = user;
       });
     },
     getUserPointCount() {
-      getUserPointCount().then((count) => {
-        console.log(1111, count);
+      InterestService.getUserPointCount().then((count) => {
         this.pointCount = count;
       });
     },
     handlePlayLottery() {
-      lotteryPlay(LotteryId).then((data) => {
-        this.prizeRecord = data;
-        this.isShowSaveAddressModal = data.type === 2;
-        alert(
-          `恭喜获得：${data.prizeName}${
-            data.type === 2 ? ",请填写收货信息" : ""
-          }`
-        );
+      LotteryService.playLottery(LotteryId).then((result) => {
+        const { recordId, prize } = result;
+        this.recordId = recordId;
+        this.gainPrize = prize;
+        this.isShowSaveAddressModal = true;
+        alert(`恭喜获得：${prize.name},请填写收货信息}`);
       });
     },
     handleInputChange(e, key) {
@@ -121,14 +107,14 @@ export default {
       this.addressInfo = addressInfo;
     },
     handleSubmit() {
-      const { addressInfo, prizeRecord } = this.state;
+      const { addressInfo, recordId } = this;
       const data = {
-        obsRecordId: prizeRecord.recordId,
+        recordId,
         name: addressInfo.name,
-        mobile: addressInfo.tel,
+        phoneNumber: addressInfo.phoneNumber,
         address: addressInfo.address,
       };
-      saveAdress(data).then(() => {
+      LotteryService.savePrizeAddress(data).then(() => {
         this.isShowSaveAddressModal = false;
         alert("提交成功");
       });

@@ -2,25 +2,28 @@
   <div class="nav">
     <div>Demo 商城</div>
     <div class="user">
-      <img :class="{ vip: userInfo.vip }" :src="userInfo.avatar" alt="" />
+      <img :class="{ vip: user.isVip }" :src="user.avatarUrl" alt="" />
       <span
-        >{{ userInfo.userType === 2 ? "尊敬的签约客户：" : null
-        }}{{ userInfo.userName }}</span
+        ><span v-if="user.isSignUserType()"
+          >尊敬的${{ user.getUserTypeTitle() }}</span
+        >{{ user.name }}</span
       >
     </div>
   </div>
 </template>
 <script>
-import * as api from "../apis/user";
+import { UserService } from "../services";
+import User from "../../../common/domain/user/entities/user";
 export default {
   data() {
     return {
-      userInfo: {},
+      user: new User(),
     };
   },
   mounted() {
-    api.getUserInfo().then((data) => {
-      this.userInfo = data;
+    UserService.getUserDetail().then((user) => {
+      this.user = user;
+      console.log(111, this.user);
     });
   },
 };

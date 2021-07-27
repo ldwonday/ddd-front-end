@@ -1,12 +1,12 @@
 <template>
   <div class="prize-item">
     <div class="img-wrap">
-      <img :src="data.pic" alt="" />
+      <img :src="prize.mainPicUrl" alt="" />
     </div>
     <div class="prize-detail">
       <div class="name">
-        <span class="super-prize" v-if="data.type === 2">超级大奖</span
-        >{{ data.prizeName }}
+        <span class="super-prize" v-if="prize.isSuperPrize()">超级大奖</span
+        >{{ prize.name }}
       </div>
     </div>
   </div>
@@ -14,7 +14,7 @@
 <script>
 export default {
   props: {
-    data: Object,
+    prize: Object,
   },
 };
 </script>

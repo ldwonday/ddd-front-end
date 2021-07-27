@@ -1,14 +1,16 @@
 <template>
   <div class="gift-item">
     <div class="img-wrap">
-      <img :src="data.pic" alt="" />
-      <span v-if="data.type === 3" class="vip-exchange">会员可兑换</span>
+      <img :src="gift.mainPicUrl" alt="" />
+      <span v-if="gift.isNeedVip()" class="vip-exchange">会员可兑换</span>
     </div>
     <div class="gift-detail">
-      <div>{{ data.name }}</div>
-      <div>消耗{{ data.value }}积分</div>
-      <div v-if="data.count > 0">
-        <span v-if="data.count < 5">最后</span>剩余{{ data.count }}件
+      <div>{{ gift.name }}</div>
+      <div>消耗{{ gift.needPointValue }}积分</div>
+      <div v-if="gift.isOutStock()">
+        <span v-if="gift.remainCount < 5">最后</span>剩余{{
+          gift.remainCount
+        }}件
       </div>
       <div v-else>等待补货</div>
     </div>
@@ -17,7 +19,7 @@
 <script>
 export default {
   props: {
-    data: Object,
+    gift: Object,
   },
 };
 </script>

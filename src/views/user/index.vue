@@ -4,16 +4,16 @@
     <div class="user">
       <div class="info">
         <div>
-          <span v-if="userInfo.userType === 2">尊敬的签约客户</span
-          >{{ userInfo.userName }}
+          <span v-if="user.isSignUserType()">尊敬的签约客户</span
+          >{{ user.name }}
         </div>
-        <div>绑定手机号： {{ userInfo.tel }}</div>
-        <div>绑定email： {{ userInfo.email }}</div>
+        <div>绑定手机号： {{ user.phoneNumber }}</div>
+        <div>绑定email： {{ user.email }}</div>
       </div>
       <div class="avatar">
-        <img :class="{ vip: userInfo.vip }" :src="userInfo.avatar" alt="" />
-        <div v-if="remainDay < 6 && userInfo.vip">
-          会员还有{{ remainDay }}天
+        <img :class="{ vip: user.isVip }" :src="user.avatarUrl" alt="" />
+        <div v-if="user.isNeedRemindUserVipLack() && user.isVip">
+          会员还有{{ user.getVipRemainDays() }}天
         </div>
       </div>
     </div>
@@ -25,20 +25,14 @@
   </div>
 </template>
 <script>
-import dayjs from "dayjs";
-import { getUserInfo } from "./apis/user";
-import { getUserPointCount } from "./apis/interest";
+import { UserService, InterestService } from "./services";
+import User from "../../common/domain/user/entities/user";
 export default {
   data() {
     return {
-      userInfo: {},
       pointCount: null,
+      user: new User(),
     };
-  },
-  computed: {
-    remainDay() {
-      return dayjs(this.userInfo.vipValidityDate).diff(new Date(), "day");
-    },
   },
   mounted() {
     this.getUserInfo();
@@ -46,12 +40,12 @@ export default {
   },
   methods: {
     getUserInfo() {
-      getUserInfo().then((data) => {
-        this.userInfo = data;
+      UserService.getUserDetail().then((user) => {
+        this.user = user;
       });
     },
     getUserPonitCount() {
-      getUserPointCount().then((count) => {
+      InterestService.getUserPointCount().then((count) => {
         this.pointCount = count;
       });
     },

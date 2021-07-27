@@ -2,8 +2,9 @@
   <div class="interest-page">
     <h3>积分中心</h3>
     <div>
-      <span v-if="userInfo.userType === 2">尊敬的签约客户</span
-      >{{ userInfo.userName }}
+      <span v-if="user.isSignUserType()"
+        >尊敬的{{ user.getUserTypeTitle() }}</span
+      >{{ user.name }}
     </div>
     <div>剩余积分： {{ remainPoint }}</div>
     <h3>积分记录</h3>
@@ -11,7 +12,7 @@
       <point-record-item
         :key="index"
         v-for="(v, index) in pointRecordList"
-        :data="v"
+        :record="v"
       />
     </div>
     <h3>积分兑换</h3>
@@ -19,7 +20,7 @@
       <gift-item
         :key="index"
         v-for="(v, index) in interestGiftList"
-        :data="v"
+        :gift="v"
       />
     </div>
     <div class="lottery-tips">
@@ -28,21 +29,17 @@
   </div>
 </template>
 <script>
-import {
-  getUserPointCount,
-  getUserPointRecord,
-  getInterestGift,
-} from "./apis/interest";
-import { getUserInfo } from "./apis/user";
+import { UserService, InterestService } from "./services";
 import PointRecordItem from "./components/PointRecordItem";
 import GiftItem from "./components/GiftItem";
+import User from "../../common/domain/user/entities/user";
 export default {
   data() {
     return {
       remainPoint: null,
       pointRecordList: [],
       interestGiftList: [],
-      userInfo: {},
+      user: new User(),
     };
   },
   components: { PointRecordItem, GiftItem },
@@ -54,22 +51,22 @@ export default {
   },
   methods: {
     getUserPointCount() {
-      getUserPointCount().then((count) => {
+      InterestService.getUserPointCount().then((count) => {
         this.remainPoint = count;
       });
     },
     getUserInfo() {
-      getUserInfo().then((data) => {
-        this.userInfo = data;
+      UserService.getUserDetail().then((user) => {
+        this.user = user;
       });
     },
     getUserPointRecordList() {
-      getUserPointRecord().then((data) => {
+      InterestService.getPointRecordList().then((data) => {
         this.pointRecordList = data;
       });
     },
     getInterestGiftList() {
-      getInterestGift().then((data) => {
+      InterestService.getInterestGiftList().then((data) => {
         this.interestGiftList = data;
       });
     },
